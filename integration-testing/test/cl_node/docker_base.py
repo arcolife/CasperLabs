@@ -218,7 +218,7 @@ class DockerBase:
             network = self.network_from_name(network_name)
             network.disconnect(self.container)
         except Exception as e:
-            logging.error(f'Error disconnecting {self.container_name} from {network_name}: {e}')
+            logging.warning(f'Error disconnecting {self.container_name} from {network_name}: {e}')
 
     def cleanup(self) -> None:
         if self.container:
@@ -226,8 +226,8 @@ class DockerBase:
                 self.disconnect_from_network(network_name)
             try:
                 self.container.remove(force=True, v=True)
-            except docker.errors.NotFound:
-                pass
+            except (docker.errors.NotFound, Exception) as e:
+                logging.warning(f'Error in cleanup: {e}')
 
 
 class LoggingDockerBase(DockerBase):
