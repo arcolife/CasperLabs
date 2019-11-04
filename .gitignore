@@ -76,3 +76,16 @@ integration-testing/bundled_contracts/*.wasm
 integration-testing/client/CasperLabsClient/casperlabs_client/*wasm
 
 .make
+
+
+# testing and Benchmarking
+##########################
+account-keys
+keys
+benchmarking_stats.csv.txt
+docker/
+execution-engine/comm/
+integration-testing/venv/
+validator-private.pem
+validator-public.pem
+integration-testing/client/CasperClient/
