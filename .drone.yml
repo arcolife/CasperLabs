@@ -874,6 +874,30 @@ steps:
   depends_on:
     - mac-ee-tarball-tag
 
+- name: generate-metapackages
+  commands:
+  - "mkdir -p artifacts/${DRONE_BRANCH}"
+  - WORKING_DIR="$(pwd)/artifacts/${DRONE_BRANCH}/"
+  - THIS_VERSION=$(echo casperlabs-engine-grpc-server_*_amd64.deb | sed s/casperlabs-engine-grpc-server_// | sed s/_amd64.deb//)
+  - THIS_VERSION_MAJOR=$(cut -d '.' -f 1 <<< "$THIS_VERSION")
+  - THIS_VERSION_MINOR=$(cut -d '.' -f 2,3 <<< "$THIS_VERSION")
+  - cd /opt/bintray/artifacts
+  - sed -i s/THIS_VERSION_MAJOR/$THIS_VERSION_MAJOR/ rpmbuild/SPECS/casperlabs-all.spec
+  - sed -i s/THIS_VERSION_MINOR/$THIS_VERSION_MINOR/ rpmbuild/SPECS/casperlabs-all.spec
+  - sed -i s/THIS_VERSION/$THIS_VERSION/ rpmbuild/SPECS/casperlabs-all.spec
+  - rpmbuild -bb rpmbuild/SPECS/casperlabs-all.spec -D "_topdir $(pwd)/rpmbuild"  -D "SRC $(pwd)"
+  - sed -i s/THIS_VERSION/$THIS_VERSION/ deb_build/casperlabs-all.cfg
+  - equivs-build  deb_build/casperlabs_all.cfg
+  - cp /opt/bintray/artifacts/casperlabs_*_all.deb $WORKING_DIR/
+  - cp /opt/bintray/artifacts/rpmbuild/RPMS/x86_64/casperlabs-*.rpm $WORKING_DIR/
+  image: "casperlabs/buildenv:latest"
+  volumes:
+  - name: docker_sock
+    path: "/var/run/docker.sock"
+  when:
+    ref:
+    - refs/tags/v*
+
 - name: github_publish_release_artifacts
   settings:
     api_key:
@@ -893,6 +917,30 @@ steps:
   - package-sbt-artifacts-tag
   - package-ee-tag
   - rsync-mac-tarball-tag
+  - generate-metapackages
+
+- name: bintray_publish_artifacts
+  image: "casperlabs/buildenv:latest"
+  commands:
+    - "mkdir -p artifacts/${DRONE_BRANCH}"
+    - TARGET="$(pwd)/artifacts/${DRONE_BRANCH}/"
+    - THIS_VERSION=$(echo casperlabs-engine-grpc-server_*_amd64.deb | sed s/casperlabs-engine-grpc-server_// | sed s/_amd64.deb//)
+    - sed -i s#/opt/bintray/artifacts/#$TARGET#g /opt/bintray/package_config.yaml
+    - sed -i s/THIS_VERSION/$THIS_VERSION/ /opt/bintray/package_config.yaml
+    - cd /opt/bintray && ./bintray
+  environment:
+    PLUGIN_BINTRAY_USERNAME:
+      from_secret: bintray_username
+    PLUGIN_BINTRAY_API_KEY:
+      from_secret: bintray_api_key
+    PLUGIN_BINTRAY_GPG_PASSPHRASE:
+      from_secret: bintray_gpg_passphrase
+    PLUGIN_BINTRAY_CFG: /opt/bintray/package_config.yaml
+  when:
+    ref:
+    - refs/tags/v*
+  depends_on:
+  - github_publish_release_artifacts
 
 - name: cleanup-mac-tag
   image: appleboy/drone-ssh:latest
