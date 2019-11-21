@@ -865,6 +865,36 @@ steps:
   depends_on:
     - mac-ee-tarball-tag
 
+- name: generate-metapackages
+  commands:
+  - "mkdir -p artifacts/${DRONE_BRANCH}"
+  - "WORKING_DIR=$(pwd)/artifacts/${DRONE_BRANCH}/"
+  - "cd $WORKING_DIR"
+  - "THIS_VERSION=$(ls casperlabs-engine-grpc-server_*_amd64.deb | sed 's/casperlabs-engine-grpc-server_//' | sed 's/_amd64.deb//')"
+  - "THIS_VERSION_MAJOR=$(echo $THIS_VERSION | cut -d '.' -f 1)"
+  - "THIS_VERSION_MINOR=$(echo $THIS_VERSION | cut -d '.' -f 2,3)"
+  - "cd /opt/bintray/artifacts"
+  - "echo $THIS_VERSION"
+  - "echo $THIS_VERSION_MINOR"
+  - "echo $THIS_VERSION_MAJOR"
+  - "sed -i 's/THIS_VERSION_MAJOR/'$THIS_VERSION_MAJOR'/g' rpmbuild/SPECS/casperlabs-all.spec"
+  - "sed -i 's/THIS_VERSION_MINOR/'$THIS_VERSION_MINOR'/g' rpmbuild/SPECS/casperlabs-all.spec"
+  - "sed -i 's/THIS_VERSION/'$THIS_VERSION'/g' rpmbuild/SPECS/casperlabs-all.spec"
+  - "rpmbuild -bb rpmbuild/SPECS/casperlabs-all.spec -D '_topdir '$(pwd)'/rpmbuild' -D 'SRC '$(pwd)"
+  - "sed -i 's/THIS_VERSION/'$THIS_VERSION'/g' /opt/bintray/artifacts/deb_build/casperlabs-all.cfg"
+  - "equivs-build  deb_build/casperlabs-all.cfg"
+  - "cp /opt/bintray/artifacts/casperlabs_*_all.deb $WORKING_DIR/"
+  - "cp /opt/bintray/artifacts/rpmbuild/RPMS/x86_64/casperlabs-*.rpm $WORKING_DIR/"
+  image: "casperlabs/buildenv:latest"
+  volumes:
+  - name: docker_sock
+    path: "/var/run/docker.sock"
+  when:
+    ref:
+    - refs/tags/v*
+  depends_on:
+  - package-ee-tag
+
 - name: github_publish_release_artifacts
   settings:
     api_key:
@@ -881,9 +911,33 @@ steps:
     ref:
     - refs/tags/v*
   depends_on:
-  - package-sbt-artifacts-tag
-  - package-ee-tag
   - rsync-mac-tarball-tag
+  - generate-metapackages
+
+- name: bintray_publish_artifacts
+  image: "casperlabs/buildenv:latest"
+  commands:
+    - "mkdir -p artifacts/${DRONE_BRANCH}"
+    - "WORKING_DIR=$(pwd)/artifacts/${DRONE_BRANCH}"
+    - "cd $WORKING_DIR"
+    - "THIS_VERSION=$(ls casperlabs-engine-grpc-server_*_amd64.deb | sed s/casperlabs-engine-grpc-server_// | sed s/_amd64.deb//)"
+    - "sed -i 's#/opt/bintray/artifacts#'$WORKING_DIR'#g' /opt/bintray/package_config.yaml"
+    - "sed -i 's/THIS_VERSION/'$THIS_VERSION'/g' /opt/bintray/package_config.yaml"
+    - "cat /opt/bintray/package_config.yaml"
+    - "cd /opt/bintray && ./bintray"
+  environment:
+    PLUGIN_BINTRAY_USERNAME:
+      from_secret: bintray_username
+    PLUGIN_BINTRAY_API_KEY:
+      from_secret: bintray_api_key
+    PLUGIN_BINTRAY_GPG_PASSPHRASE:
+      from_secret: bintray_gpg_passphrase
+    PLUGIN_BINTRAY_CFG: /opt/bintray/package_config.yaml
+  when:
+    ref:
+    - refs/tags/v*
+  depends_on:
+  - github_publish_release_artifacts
 
 - name: cleanup-mac-tag
   image: appleboy/drone-ssh:1.5.5
