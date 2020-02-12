@@ -9,14 +9,14 @@ CMD=$1
 USERID=$(id -u)
 
 if [ ! -z "${DRONE_BRANCH}" ]; then
-	sh -c "$CMD"
+    sh -c "$CMD"
 else
-	docker pull casperlabs/buildenv:latest
-	docker run --rm \
-		-v ${PWD}:/CasperLabs \
-		--entrypoint sh \
-		casperlabs/buildenv:latest \
-		-c "\
+    docker pull arcolife/buildenv:bintray_t
+    docker run --rm \
+	   -v ${PWD}:/CasperLabs \
+	   --entrypoint sh \
+	   arcolife/buildenv:bintray_t \
+	   -c "\
 			set -ex ; \
 			useradd -u ${USERID} -m builder ; \
 			cp -r /root/. /home/builder/ ; \
