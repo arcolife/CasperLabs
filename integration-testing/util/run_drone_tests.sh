@@ -6,7 +6,7 @@
 
 # This is done in the drone exec, but silent and just looks like it is hanging, while downloading almsot 4GB.
 # Doing this prior makes that step very fast.
-docker pull casperlabs/buildenv:latest
+docker pull arcolife/buildenv:bintray_t
 
 # Early test for drone being installed.
 drone -v foo >/dev/null 2>&1 || { echo >&2 "I require drone but it's not installed.  Aborting.  See comments at top of script for installing."; exit 1; }
