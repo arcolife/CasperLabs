@@ -5,12 +5,12 @@
 # verbose in the steps.
 #
 #__buildenv:
-#  image: "arcolife/buildenv:bintray_u"
+#  image: "casperlabs/buildenv:latest"
 #
 #__sbtenv:
 #  environment:
 #    - "_JAVA_OPTIONS=-Xms2G -Xmx2G -XX:MaxMetaspaceSize=1G"
-#  image: "arcolife/buildenv:bintray_u"
+#  image: "casperlabs/buildenv:latest"
 #  volumes:
 #    - "/var/cache/cl-build/.sbt:/root/.sbt"
 #    - "/var/cache/cl-build/.ivy2:/root/.ivy2"
@@ -27,7 +27,7 @@ clone:
           EMAIL=ci git merge --no-edit FETCH_HEAD
       fi
       git rev-parse HEAD
-    image: "arcolife/buildenv:bintray_u"
+    image: "casperlabs/buildenv:latest"
 
 #NOTE: 1. Had to remove cached .sbt/.ivy2 dirs for drone autoscaling. This is because
 # drone uses docker bind mounts which do not create the host dir if it is nonexistent,
@@ -44,7 +44,7 @@ steps:
 - name: markdown-link-check
   commands:
   - "ci/markdown-link-check.sh"
-  image: "arcolife/buildenv:bintray_u"
+  image: "casperlabs/buildenv:latest"
   failure: "ignore"
   when:
     event:
@@ -59,7 +59,7 @@ steps:
   - "sbt test"
   environment:
     _JAVA_OPTIONS: "-Xms2G -Xmx2G -XX:MaxMetaspaceSize=1G"
-  image: "arcolife/buildenv:bintray_u"
+  image: "casperlabs/buildenv:latest"
   when:
     event:
     - pull_request
@@ -75,7 +75,7 @@ steps:
   commands:
   - STATUS_CHECK=$(git status)
   - if echo $STATUS_CHECK | grep -q "modified" ; then echo "$STATUS_CHECK"; exit 1; fi
-  image: "arcolife/buildenv:bintray_u"
+  image: "casperlabs/buildenv:latest"
   when:
     event:
     - pull_request
@@ -95,7 +95,7 @@ steps:
   - "cd execution-engine/"
   - "make setup-rs"
   - "make test-rs test-contracts-rs"
-  image: "arcolife/buildenv:bintray_u"
+  image: "casperlabs/buildenv:latest"
   when:
     event:
     - pull_request
@@ -115,7 +115,7 @@ steps:
   - "make setup"
   - "make build-contracts-rs"
   - "make test-as test-contracts-as"
-  image: "arcolife/buildenv:bintray_u"
+  image: "casperlabs/buildenv:latest"
   when:
     event:
     - pull_request
@@ -129,7 +129,7 @@ steps:
   - "cd execution-engine"
   - "~/.cargo/bin/rustup toolchain install $(cat rust-toolchain)"
   - "make check-format"
-  image: "arcolife/buildenv:bintray_u"
+  image: "casperlabs/buildenv:latest"
   when:
     event:
     - pull_request
@@ -150,7 +150,7 @@ steps:
   - "cd execution-engine"
   - "make setup-rs"
   - "make lint"
-  image: "arcolife/buildenv:bintray_u"
+  image: "casperlabs/buildenv:latest"
   when:
     event:
     - pull_request
@@ -171,7 +171,7 @@ steps:
   - "python3 -m pip install pipenv"
   - "cd integration-testing"
   - "./run_flake8_black.sh"
-  image: "arcolife/buildenv:bintray_u"
+  image: "casperlabs/buildenv:latest"
   when:
     event:
     - pull_request
@@ -187,7 +187,7 @@ steps:
 - name: markdown-link-check-bors
   commands:
   - "ci/markdown-link-check.sh"
-  image: "arcolife/buildenv:bintray_u"
+  image: "casperlabs/buildenv:latest"
   failure: "ignore"
   when:
     branch:
@@ -203,7 +203,7 @@ steps:
   - "python3 -m pip install pipenv"
   - "cd integration-testing"
   - "./run_flake8_black.sh"
-  image: "arcolife/buildenv:bintray_u"
+  image: "casperlabs/buildenv:latest"
   when:
     branch:
     - test_bintray
@@ -220,7 +220,7 @@ steps:
   - "make docker-build/node docker-build/client"
   environment:
     _JAVA_OPTIONS: "-Xms2G -Xmx2G -XX:MaxMetaspaceSize=1G"
-  image: "arcolife/buildenv:bintray_u"
+  image: "casperlabs/buildenv:latest"
   volumes:
   - name: docker_sock
     path: "/var/run/docker.sock"
@@ -233,7 +233,7 @@ steps:
   commands:
   - STATUS_CHECK=$(git status)
   - if echo $STATUS_CHECK | grep -q "modified" ; then echo "$STATUS_CHECK"; exit 1; fi
-  image: "arcolife/buildenv:bintray_u"
+  image: "casperlabs/buildenv:latest"
   when:
     branch:
     - test_bintray
@@ -254,7 +254,7 @@ steps:
   - "cd execution-engine/"
   - "make setup"
   - "make test"
-  image: "arcolife/buildenv:bintray_u"
+  image: "casperlabs/buildenv:latest"
   when:
     branch:
     - test_bintray
@@ -269,7 +269,7 @@ steps:
   - "cd execution-engine"
   - "~/.cargo/bin/rustup toolchain install $(cat rust-toolchain)"
   - "make check-format"
-  image: "arcolife/buildenv:bintray_u"
+  image: "casperlabs/buildenv:latest"
   when:
     branch:
     - test_bintray
@@ -292,7 +292,7 @@ steps:
   - "cd execution-engine"
   - "make setup-rs"
   - "make lint"
-  image: "arcolife/buildenv:bintray_u"
+  image: "casperlabs/buildenv:latest"
   when:
     branch:
     - test_bintray
@@ -315,7 +315,7 @@ steps:
   - "cd execution-engine"
   - "make setup-rs"
   - "make bench"
-  image: "arcolife/buildenv:bintray_u"
+  image: "casperlabs/buildenv:latest"
   when:
     branch:
     - test_bintray
@@ -341,7 +341,7 @@ steps:
   - "make docker-build/integration-testing"
   environment:
     _JAVA_OPTIONS: "-Xms2G -Xmx2G -XX:MaxMetaspaceSize=1G"
-  image: "arcolife/buildenv:bintray_u"
+  image: "casperlabs/buildenv:latest"
   volumes:
   - name: docker_sock
     path: "/var/run/docker.sock"
@@ -359,7 +359,7 @@ steps:
   - "make docker-build/key-generator"
   environment:
     _JAVA_OPTIONS: "-Xms2G -Xmx2G -XX:MaxMetaspaceSize=1G"
-  image: "arcolife/buildenv:bintray_u"
+  image: "casperlabs/buildenv:latest"
   volumes:
   - name: docker_sock
     path: "/var/run/docker.sock"
@@ -384,7 +384,7 @@ steps:
   - "make docker-build/grpcwebproxy"
   environment:
     _JAVA_OPTIONS: "-Xms2G -Xmx2G -XX:MaxMetaspaceSize=1G"
-  image: "arcolife/buildenv:bintray_u"
+  image: "casperlabs/buildenv:latest"
   volumes:
   - name: docker_sock
     path: "/var/run/docker.sock"
@@ -401,7 +401,7 @@ steps:
   - "mkdir /tmp/keys-DRONE-${DRONE_BUILD_NUMBER}"
   - "./hack/key-management/docker-gen-keys.sh /tmp/keys-DRONE-${DRONE_BUILD_NUMBER} --test"
   - "rm -rf /tmp/keys-DRONE-${DRONE_BUILD_NUMBER}"
-  image: "arcolife/buildenv:bintray_u"
+  image: "casperlabs/buildenv:latest"
   volumes:
   - name: docker_sock
     path: "/var/run/docker.sock"
@@ -426,7 +426,7 @@ steps:
   - "./docker_run_tests.sh"
   environment:
     _JAVA_OPTIONS: "-Xms2G -Xmx2G -XX:MaxMetaspaceSize=1G"
-  image: "arcolife/buildenv:bintray_u"
+  image: "casperlabs/buildenv:latest"
   volumes:
   - name: docker_sock
     path: "/var/run/docker.sock"
@@ -446,7 +446,7 @@ steps:
   - "cd execution-engine"
   - "make setup-rs"
   - "make build"
-  image: "arcolife/buildenv:bintray_u"
+  image: "casperlabs/buildenv:latest"
   when:
     branch:
     - dev
@@ -462,7 +462,7 @@ steps:
   - "make docker-build/execution-engine"
   environment:
     _JAVA_OPTIONS: "-Xms2G -Xmx2G -XX:MaxMetaspaceSize=1G"
-  image: "arcolife/buildenv:bintray_u"
+  image: "casperlabs/buildenv:latest"
   volumes:
   - name: docker_sock
     path: "/var/run/docker.sock"
@@ -480,7 +480,7 @@ steps:
   commands:
   - "export DOCKER_LATEST_TAG=DRONE-${DRONE_BUILD_NUMBER}"
   - "make docker-build/key-generator"
-  image: "arcolife/buildenv:bintray_u"
+  image: "casperlabs/buildenv:latest"
   volumes:
   - name: docker_sock
     path: "/var/run/docker.sock"
@@ -496,7 +496,7 @@ steps:
   commands:
   - "export DOCKER_LATEST_TAG=DRONE-${DRONE_BUILD_NUMBER}"
   - "make docker-build/explorer"
-  image: "arcolife/buildenv:bintray_u"
+  image: "casperlabs/buildenv:latest"
   volumes:
   - name: docker_sock
     path: "/var/run/docker.sock"
@@ -512,7 +512,7 @@ steps:
   commands:
   - "export DOCKER_LATEST_TAG=DRONE-${DRONE_BUILD_NUMBER}"
   - "make docker-build/grpcwebproxy"
-  image: "arcolife/buildenv:bintray_u"
+  image: "casperlabs/buildenv:latest"
   volumes:
   - name: docker_sock
     path: "/var/run/docker.sock"
@@ -529,7 +529,7 @@ steps:
   - "make clean"
   environment:
     _JAVA_OPTIONS: "-Xms2G -Xmx2G -XX:MaxMetaspaceSize=1G"
-  image: "arcolife/buildenv:bintray_u"
+  image: "casperlabs/buildenv:latest"
   when:
     branch:
     - dev
@@ -556,7 +556,7 @@ steps:
   - "cp node/target/rpm/RPMS/noarch/casperlabs-node-*.noarch.rpm artifacts/${DRONE_BRANCH}"
   environment:
     _JAVA_OPTIONS: "-Xms2G -Xmx2G -XX:MaxMetaspaceSize=1G"
-  image: "arcolife/buildenv:bintray_u"
+  image: "casperlabs/buildenv:latest"
   volumes:
   - name: docker_sock
     path: "/var/run/docker.sock"
@@ -579,7 +579,7 @@ steps:
   - "cp execution-engine/target/debian/casperlabs-engine-grpc-server_*.deb artifacts/${DRONE_BRANCH}"
   - "cp execution-engine/target/release/rpmbuild/RPMS/x86_64/casperlabs-engine-grpc-server-*.rpm artifacts/${DRONE_BRANCH}"
   - "WORKING_DIR=$(pwd) ; cd execution-engine/target/release/rpmbuild/SOURCES ; OS=$(uname -s | tr '[:upper:]' '[:lower:]') ; ARCH=$(uname -p) ; SOURCE=$(ls casperlabs-engine-grpc-server-*.tar.gz | sed \"s/.tar.gz//\") ; TARGET=$(ls $SOURCE*.tar.gz | sed \"s/.tar.gz/_\"$OS\"_\"$ARCH\".tar.gz/\") ; tar -xzf $SOURCE.tar.gz ; tar -czf $TARGET -C $SOURCE/usr/bin/ . && cp $TARGET $WORKING_DIR/artifacts/${DRONE_BRANCH}"
-  image: "arcolife/buildenv:bintray_u"
+  image: "casperlabs/buildenv:latest"
   when:
     branch:
     - dev
@@ -655,7 +655,7 @@ steps:
 #         docker push casperlabs/grpcwebproxy:latest
 #       fi
 #       echo "done"
-#   image: "arcolife/buildenv:bintray_u"
+#   image: "casperlabs/buildenv:latest"
 #   environment:
 #     DOCKER_PASSWORD:
 #       from_secret: docker_password
@@ -710,7 +710,7 @@ steps:
   - "docker images | grep \"DRONE-${DRONE_BUILD_NUMBER}\" | awk '{print $3}' | xargs --no-run-if-empty docker rmi -f || true"
   environment:
     _JAVA_OPTIONS: "-Xms2G -Xmx2G -XX:MaxMetaspaceSize=1G"
-  image: "arcolife/buildenv:bintray_u"
+  image: "casperlabs/buildenv:latest"
   volumes:
   - name: docker_sock
     path: "/var/run/docker.sock"
@@ -787,7 +787,7 @@ steps:
   - "cp node/target/rpm/RPMS/noarch/casperlabs-node-*.noarch.rpm artifacts/${DRONE_BRANCH}"
   environment:
     _JAVA_OPTIONS: "-Xms2G -Xmx2G -XX:MaxMetaspaceSize=1G"
-  image: "arcolife/buildenv:bintray_u"
+  image: "casperlabs/buildenv:latest"
   volumes:
   - name: docker_sock
     path: "/var/run/docker.sock"
@@ -804,7 +804,7 @@ steps:
   - "cp execution-engine/target/debian/casperlabs-engine-grpc-server_*.deb artifacts/${DRONE_BRANCH}"
   - "cp execution-engine/target/release/rpmbuild/RPMS/x86_64/casperlabs-engine-grpc-server-*.rpm artifacts/${DRONE_BRANCH}"
   - "WORKING_DIR=$(pwd) ; cd execution-engine/target/release/rpmbuild/SOURCES ; OS=$(uname -s | tr '[:upper:]' '[:lower:]') ; ARCH=$(uname -p) ; SOURCE=$(ls casperlabs-engine-grpc-server-*.tar.gz | sed \"s/.tar.gz//\") ; TARGET=$(ls $SOURCE*.tar.gz | sed \"s/.tar.gz/_\"$OS\"_\"$ARCH\".tar.gz/\") ; tar -xzf $SOURCE.tar.gz ; tar -czf $TARGET -C $SOURCE/usr/bin/ . && cp $TARGET $WORKING_DIR/artifacts/${DRONE_BRANCH}"
-  image: "arcolife/buildenv:bintray_u"
+  image: "casperlabs/buildenv:latest"
   volumes:
   - name: docker_sock
     path: "/var/run/docker.sock"
@@ -846,7 +846,7 @@ steps:
 #     - refs/tags/v*
 
 # - name: rsync-mac-tarball-tag
-#   image: "arcolife/buildenv:bintray_u"
+#   image: "casperlabs/buildenv:latest"
 #   environment:
 #     SSH_HOST:
 #       from_secret: mac-host
@@ -885,7 +885,7 @@ steps:
   - "equivs-build  deb_build/casperlabs-all.cfg"
   - "cp /opt/bintray/artifacts/casperlabs_*_all.deb $WORKING_DIR/"
   - "cp /opt/bintray/artifacts/rpmbuild/RPMS/x86_64/casperlabs-*.rpm $WORKING_DIR/"
-  image: "arcolife/buildenv:bintray_u"
+  image: "casperlabs/buildenv:latest"
   volumes:
   - name: docker_sock
     path: "/var/run/docker.sock"
