@@ -5,12 +5,12 @@
 # verbose in the steps.
 #
 #__buildenv:
-#  image: "casperlabs/buildenv:latest"
+#  image: "arcolife/buildenv:bintray_u"
 #
 #__sbtenv:
 #  environment:
 #    - "_JAVA_OPTIONS=-Xms2G -Xmx2G -XX:MaxMetaspaceSize=1G"
-#  image: "casperlabs/buildenv:latest"
+#  image: "arcolife/buildenv:bintray_u"
 #  volumes:
 #    - "/var/cache/cl-build/.sbt:/root/.sbt"
 #    - "/var/cache/cl-build/.ivy2:/root/.ivy2"
@@ -27,7 +27,7 @@ clone:
           EMAIL=ci git merge --no-edit FETCH_HEAD
       fi
       git rev-parse HEAD
-    image: "casperlabs/buildenv:latest"
+    image: "arcolife/buildenv:bintray_u"
 
 #NOTE: 1. Had to remove cached .sbt/.ivy2 dirs for drone autoscaling. This is because
 # drone uses docker bind mounts which do not create the host dir if it is nonexistent,
@@ -44,7 +44,7 @@ steps:
 - name: markdown-link-check
   commands:
   - "ci/markdown-link-check.sh"
-  image: "casperlabs/buildenv:latest"
+  image: "arcolife/buildenv:bintray_u"
   failure: "ignore"
   when:
     event:
@@ -59,7 +59,7 @@ steps:
   - "sbt test"
   environment:
     _JAVA_OPTIONS: "-Xms2G -Xmx2G -XX:MaxMetaspaceSize=1G"
-  image: "casperlabs/buildenv:latest"
+  image: "arcolife/buildenv:bintray_u"
   when:
     event:
     - pull_request
@@ -75,7 +75,7 @@ steps:
   commands:
   - STATUS_CHECK=$(git status)
   - if echo $STATUS_CHECK | grep -q "modified" ; then echo "$STATUS_CHECK"; exit 1; fi
-  image: "casperlabs/buildenv:latest"
+  image: "arcolife/buildenv:bintray_u"
   when:
     event:
     - pull_request
@@ -95,7 +95,7 @@ steps:
   - "cd execution-engine/"
   - "make setup-rs"
   - "make test-rs test-contracts-rs"
-  image: "casperlabs/buildenv:latest"
+  image: "arcolife/buildenv:bintray_u"
   when:
     event:
     - pull_request
@@ -115,7 +115,7 @@ steps:
   - "make setup"
   - "make build-contracts-rs"
   - "make test-as test-contracts-as"
-  image: "casperlabs/buildenv:latest"
+  image: "arcolife/buildenv:bintray_u"
   when:
     event:
     - pull_request
@@ -129,7 +129,7 @@ steps:
   - "cd execution-engine"
   - "~/.cargo/bin/rustup toolchain install $(cat rust-toolchain)"
   - "make check-format"
-  image: "casperlabs/buildenv:latest"
+  image: "arcolife/buildenv:bintray_u"
   when:
     event:
     - pull_request
@@ -150,7 +150,7 @@ steps:
   - "cd execution-engine"
   - "make setup-rs"
   - "make lint"
-  image: "casperlabs/buildenv:latest"
+  image: "arcolife/buildenv:bintray_u"
   when:
     event:
     - pull_request
@@ -171,7 +171,7 @@ steps:
   - "python3 -m pip install pipenv"
   - "cd integration-testing"
   - "./run_flake8_black.sh"
-  image: "casperlabs/buildenv:latest"
+  image: "arcolife/buildenv:bintray_u"
   when:
     event:
     - pull_request
@@ -187,11 +187,11 @@ steps:
 - name: markdown-link-check-bors
   commands:
   - "ci/markdown-link-check.sh"
-  image: "casperlabs/buildenv:latest"
+  image: "arcolife/buildenv:bintray_u"
   failure: "ignore"
   when:
     branch:
-    - staging
+    - test_bintray
     - trying
     changeset:
       includes:
@@ -203,10 +203,10 @@ steps:
   - "python3 -m pip install pipenv"
   - "cd integration-testing"
   - "./run_flake8_black.sh"
-  image: "casperlabs/buildenv:latest"
+  image: "arcolife/buildenv:bintray_u"
   when:
     branch:
-    - staging
+    - test_bintray
     - trying
     changeset:
       includes:
@@ -220,23 +220,23 @@ steps:
   - "make docker-build/node docker-build/client"
   environment:
     _JAVA_OPTIONS: "-Xms2G -Xmx2G -XX:MaxMetaspaceSize=1G"
-  image: "casperlabs/buildenv:latest"
+  image: "arcolife/buildenv:bintray_u"
   volumes:
   - name: docker_sock
     path: "/var/run/docker.sock"
   when:
     branch:
-    - staging
+    - test_bintray
     - trying
 
 - name: git-status-post-scala-compile-bors
   commands:
   - STATUS_CHECK=$(git status)
   - if echo $STATUS_CHECK | grep -q "modified" ; then echo "$STATUS_CHECK"; exit 1; fi
-  image: "casperlabs/buildenv:latest"
+  image: "arcolife/buildenv:bintray_u"
   when:
     branch:
-    - staging
+    - test_bintray
     - trying
     changeset:
       includes:
@@ -254,10 +254,10 @@ steps:
   - "cd execution-engine/"
   - "make setup"
   - "make test"
-  image: "casperlabs/buildenv:latest"
+  image: "arcolife/buildenv:bintray_u"
   when:
     branch:
-    - staging
+    - test_bintray
     - trying
   depends_on:
   - sbt-test-docker-bors
@@ -269,10 +269,10 @@ steps:
   - "cd execution-engine"
   - "~/.cargo/bin/rustup toolchain install $(cat rust-toolchain)"
   - "make check-format"
-  image: "casperlabs/buildenv:latest"
+  image: "arcolife/buildenv:bintray_u"
   when:
     branch:
-    - staging
+    - test_bintray
     - trying
     changeset:
       includes:
@@ -292,32 +292,10 @@ steps:
   - "cd execution-engine"
   - "make setup-rs"
   - "make lint"
-  image: "casperlabs/buildenv:latest"
+  image: "arcolife/buildenv:bintray_u"
   when:
     branch:
-    - staging
-    - trying
-    changeset:
-      includes:
-      - "**/.drone.yml"
-      - "**/**.rs"
-      - "**/**.proto"
-      - "**/Cargo.lock"
-      - "**/Cargo.toml"
-      - "**/casperlabs-engine-grpc-server.spec"
-      - "**/rustfmt.toml"
-  depends_on:
-  - rust-compile-test-bors
-  - sbt-test-docker-bors
-
-- name: try-cargo-publish-bors
-  commands:
-  - "cd execution-engine"
-  - "make check-publish"
-  image: "casperlabs/buildenv:latest"
-  when:
-    branch:
-    - staging
+    - test_bintray
     - trying
     changeset:
       includes:
@@ -337,10 +315,10 @@ steps:
   - "cd execution-engine"
   - "make setup-rs"
   - "make bench"
-  image: "casperlabs/buildenv:latest"
+  image: "arcolife/buildenv:bintray_u"
   when:
     branch:
-    - staging
+    - test_bintray
     - trying
     changeset:
       includes:
@@ -363,13 +341,13 @@ steps:
   - "make docker-build/integration-testing"
   environment:
     _JAVA_OPTIONS: "-Xms2G -Xmx2G -XX:MaxMetaspaceSize=1G"
-  image: "casperlabs/buildenv:latest"
+  image: "arcolife/buildenv:bintray_u"
   volumes:
   - name: docker_sock
     path: "/var/run/docker.sock"
   when:
     branch:
-    - staging
+    - test_bintray
     - trying
   depends_on:
   - rust-compile-test-bors
@@ -381,13 +359,13 @@ steps:
   - "make docker-build/key-generator"
   environment:
     _JAVA_OPTIONS: "-Xms2G -Xmx2G -XX:MaxMetaspaceSize=1G"
-  image: "casperlabs/buildenv:latest"
+  image: "arcolife/buildenv:bintray_u"
   volumes:
   - name: docker_sock
     path: "/var/run/docker.sock"
   when:
     branch:
-    - staging
+    - test_bintray
     - trying
     changeset:
       includes:
@@ -406,13 +384,13 @@ steps:
   - "make docker-build/grpcwebproxy"
   environment:
     _JAVA_OPTIONS: "-Xms2G -Xmx2G -XX:MaxMetaspaceSize=1G"
-  image: "casperlabs/buildenv:latest"
+  image: "arcolife/buildenv:bintray_u"
   volumes:
   - name: docker_sock
     path: "/var/run/docker.sock"
   when:
     branch:
-    - staging
+    - test_bintray
     - trying
   depends_on:
   - rust-compile-test-bors
@@ -423,7 +401,7 @@ steps:
   - "mkdir /tmp/keys-DRONE-${DRONE_BUILD_NUMBER}"
   - "./hack/key-management/docker-gen-keys.sh /tmp/keys-DRONE-${DRONE_BUILD_NUMBER} --test"
   - "rm -rf /tmp/keys-DRONE-${DRONE_BUILD_NUMBER}"
-  image: "casperlabs/buildenv:latest"
+  image: "arcolife/buildenv:bintray_u"
   volumes:
   - name: docker_sock
     path: "/var/run/docker.sock"
@@ -431,7 +409,7 @@ steps:
     path: "/tmp"
   when:
     branch:
-    - staging
+    - test_bintray
     - trying
     changeset:
       includes:
@@ -448,7 +426,7 @@ steps:
   - "./docker_run_tests.sh"
   environment:
     _JAVA_OPTIONS: "-Xms2G -Xmx2G -XX:MaxMetaspaceSize=1G"
-  image: "casperlabs/buildenv:latest"
+  image: "arcolife/buildenv:bintray_u"
   volumes:
   - name: docker_sock
     path: "/var/run/docker.sock"
@@ -456,7 +434,7 @@ steps:
     path: "/tmp"
   when:
     branch:
-    - staging
+    - test_bintray
     - trying
   depends_on:
   - docker-build-ee-int-bors
@@ -468,7 +446,7 @@ steps:
   - "cd execution-engine"
   - "make setup-rs"
   - "make build"
-  image: "casperlabs/buildenv:latest"
+  image: "arcolife/buildenv:bintray_u"
   when:
     branch:
     - dev
@@ -484,7 +462,7 @@ steps:
   - "make docker-build/execution-engine"
   environment:
     _JAVA_OPTIONS: "-Xms2G -Xmx2G -XX:MaxMetaspaceSize=1G"
-  image: "casperlabs/buildenv:latest"
+  image: "arcolife/buildenv:bintray_u"
   volumes:
   - name: docker_sock
     path: "/var/run/docker.sock"
@@ -502,7 +480,7 @@ steps:
   commands:
   - "export DOCKER_LATEST_TAG=DRONE-${DRONE_BUILD_NUMBER}"
   - "make docker-build/key-generator"
-  image: "casperlabs/buildenv:latest"
+  image: "arcolife/buildenv:bintray_u"
   volumes:
   - name: docker_sock
     path: "/var/run/docker.sock"
@@ -518,7 +496,7 @@ steps:
   commands:
   - "export DOCKER_LATEST_TAG=DRONE-${DRONE_BUILD_NUMBER}"
   - "make docker-build/explorer"
-  image: "casperlabs/buildenv:latest"
+  image: "arcolife/buildenv:bintray_u"
   volumes:
   - name: docker_sock
     path: "/var/run/docker.sock"
@@ -534,7 +512,7 @@ steps:
   commands:
   - "export DOCKER_LATEST_TAG=DRONE-${DRONE_BUILD_NUMBER}"
   - "make docker-build/grpcwebproxy"
-  image: "casperlabs/buildenv:latest"
+  image: "arcolife/buildenv:bintray_u"
   volumes:
   - name: docker_sock
     path: "/var/run/docker.sock"
@@ -551,7 +529,7 @@ steps:
   - "make clean"
   environment:
     _JAVA_OPTIONS: "-Xms2G -Xmx2G -XX:MaxMetaspaceSize=1G"
-  image: "casperlabs/buildenv:latest"
+  image: "arcolife/buildenv:bintray_u"
   when:
     branch:
     - dev
@@ -578,7 +556,7 @@ steps:
   - "cp node/target/rpm/RPMS/noarch/casperlabs-node-*.noarch.rpm artifacts/${DRONE_BRANCH}"
   environment:
     _JAVA_OPTIONS: "-Xms2G -Xmx2G -XX:MaxMetaspaceSize=1G"
-  image: "casperlabs/buildenv:latest"
+  image: "arcolife/buildenv:bintray_u"
   volumes:
   - name: docker_sock
     path: "/var/run/docker.sock"
@@ -601,7 +579,7 @@ steps:
   - "cp execution-engine/target/debian/casperlabs-engine-grpc-server_*.deb artifacts/${DRONE_BRANCH}"
   - "cp execution-engine/target/release/rpmbuild/RPMS/x86_64/casperlabs-engine-grpc-server-*.rpm artifacts/${DRONE_BRANCH}"
   - "WORKING_DIR=$(pwd) ; cd execution-engine/target/release/rpmbuild/SOURCES ; OS=$(uname -s | tr '[:upper:]' '[:lower:]') ; ARCH=$(uname -p) ; SOURCE=$(ls casperlabs-engine-grpc-server-*.tar.gz | sed \"s/.tar.gz//\") ; TARGET=$(ls $SOURCE*.tar.gz | sed \"s/.tar.gz/_\"$OS\"_\"$ARCH\".tar.gz/\") ; tar -xzf $SOURCE.tar.gz ; tar -czf $TARGET -C $SOURCE/usr/bin/ . && cp $TARGET $WORKING_DIR/artifacts/${DRONE_BRANCH}"
-  image: "casperlabs/buildenv:latest"
+  image: "arcolife/buildenv:bintray_u"
   when:
     branch:
     - dev
@@ -641,64 +619,64 @@ steps:
   - package-sbt-artifacts-merge
   - package-ee
 
-- name: docker-publish
-  commands:
-  - |
-      echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
-      if [ ! -z ${DRONE_TAG} ]; then
-        REF=${DRONE_TAG}
-      else
-        REF=${DRONE_BRANCH}
-      fi
-      docker tag casperlabs/node:DRONE-${DRONE_BUILD_NUMBER} casperlabs/node:"$REF"
-      docker tag casperlabs/client:DRONE-${DRONE_BUILD_NUMBER} casperlabs/client:"$REF"
-      docker tag casperlabs/execution-engine:DRONE-${DRONE_BUILD_NUMBER} casperlabs/execution-engine:"$REF"
-      docker tag casperlabs/key-generator:DRONE-${DRONE_BUILD_NUMBER} casperlabs/key-generator:"$REF"
-      docker tag casperlabs/explorer:DRONE-${DRONE_BUILD_NUMBER} casperlabs/explorer:"$REF"
-      docker tag casperlabs/grpcwebproxy:DRONE-${DRONE_BUILD_NUMBER} casperlabs/grpcwebproxy:"$REF"
-      docker push casperlabs/node:"$REF"
-      docker push casperlabs/client:"$REF"
-      docker push casperlabs/execution-engine:"$REF"
-      docker push casperlabs/key-generator:"$REF"
-      docker push casperlabs/explorer:"$REF"
-      docker push casperlabs/grpcwebproxy:"$REF"
-      if [ "${DRONE_BRANCH}" = "master" ]; then
-        docker tag casperlabs/node:DRONE-${DRONE_BUILD_NUMBER} casperlabs/node:latest
-        docker tag casperlabs/client:DRONE-${DRONE_BUILD_NUMBER} casperlabs/client:latest
-        docker tag casperlabs/execution-engine:DRONE-${DRONE_BUILD_NUMBER} casperlabs/execution-engine:latest
-        docker tag casperlabs/key-generator:DRONE-${DRONE_BUILD_NUMBER} casperlabs/key-generator:latest
-        docker tag casperlabs/explorer:DRONE-${DRONE_BUILD_NUMBER} casperlabs/explorer:latest
-        docker tag casperlabs/grpcwebproxy:DRONE-${DRONE_BUILD_NUMBER} casperlabs/grpcwebproxy:latest
-        docker push casperlabs/node:latest
-        docker push casperlabs/client:latest
-        docker push casperlabs/execution-engine:latest
-        docker push casperlabs/key-generator:latest
-        docker push casperlabs/explorer:latest
-        docker push casperlabs/grpcwebproxy:latest
-      fi
-      echo "done"
-  image: "casperlabs/buildenv:latest"
-  environment:
-    DOCKER_PASSWORD:
-      from_secret: docker_password
-    DOCKER_USERNAME:
-      from_secret: docker_username
-  volumes:
-  - name: docker_sock
-    path: "/var/run/docker.sock"
-  when:
-    branch:
-    - dev
-    - release-*
-    - master
-    event:
-    - push
-  depends_on:
-  - docker-build-ee-merge
-  - docker-key-gen-merge
-  - docker-explorer-merge
-  - docker-grpcwebproxy-merge
-  - package-sbt-artifacts-merge
+# - name: docker-publish
+#   commands:
+#   - |
+#       echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
+#       if [ ! -z ${DRONE_TAG} ]; then
+#         REF=${DRONE_TAG}
+#       else
+#         REF=${DRONE_BRANCH}
+#       fi
+#       docker tag casperlabs/node:DRONE-${DRONE_BUILD_NUMBER} casperlabs/node:"$REF"
+#       docker tag casperlabs/client:DRONE-${DRONE_BUILD_NUMBER} casperlabs/client:"$REF"
+#       docker tag casperlabs/execution-engine:DRONE-${DRONE_BUILD_NUMBER} casperlabs/execution-engine:"$REF"
+#       docker tag casperlabs/key-generator:DRONE-${DRONE_BUILD_NUMBER} casperlabs/key-generator:"$REF"
+#       docker tag casperlabs/explorer:DRONE-${DRONE_BUILD_NUMBER} casperlabs/explorer:"$REF"
+#       docker tag casperlabs/grpcwebproxy:DRONE-${DRONE_BUILD_NUMBER} casperlabs/grpcwebproxy:"$REF"
+#       docker push casperlabs/node:"$REF"
+#       docker push casperlabs/client:"$REF"
+#       docker push casperlabs/execution-engine:"$REF"
+#       docker push casperlabs/key-generator:"$REF"
+#       docker push casperlabs/explorer:"$REF"
+#       docker push casperlabs/grpcwebproxy:"$REF"
+#       if [ "${DRONE_BRANCH}" = "master" ]; then
+#         docker tag casperlabs/node:DRONE-${DRONE_BUILD_NUMBER} casperlabs/node:latest
+#         docker tag casperlabs/client:DRONE-${DRONE_BUILD_NUMBER} casperlabs/client:latest
+#         docker tag casperlabs/execution-engine:DRONE-${DRONE_BUILD_NUMBER} casperlabs/execution-engine:latest
+#         docker tag casperlabs/key-generator:DRONE-${DRONE_BUILD_NUMBER} casperlabs/key-generator:latest
+#         docker tag casperlabs/explorer:DRONE-${DRONE_BUILD_NUMBER} casperlabs/explorer:latest
+#         docker tag casperlabs/grpcwebproxy:DRONE-${DRONE_BUILD_NUMBER} casperlabs/grpcwebproxy:latest
+#         docker push casperlabs/node:latest
+#         docker push casperlabs/client:latest
+#         docker push casperlabs/execution-engine:latest
+#         docker push casperlabs/key-generator:latest
+#         docker push casperlabs/explorer:latest
+#         docker push casperlabs/grpcwebproxy:latest
+#       fi
+#       echo "done"
+#   image: "arcolife/buildenv:bintray_u"
+#   environment:
+#     DOCKER_PASSWORD:
+#       from_secret: docker_password
+#     DOCKER_USERNAME:
+#       from_secret: docker_username
+#   volumes:
+#   - name: docker_sock
+#     path: "/var/run/docker.sock"
+#   when:
+#     branch:
+#     - dev
+#     - release-*
+#     - master
+#     event:
+#     - push
+#   depends_on:
+#   - docker-build-ee-merge
+#   - docker-key-gen-merge
+#   - docker-explorer-merge
+#   - docker-grpcwebproxy-merge
+#   - package-sbt-artifacts-merge
 
 volumes:
 - name: docker_sock
@@ -715,7 +693,7 @@ trigger:
   - "release-*"
   - "testing*"
   - trying
-  - staging
+  - test_bintray
   - NODE-659-rdbms-epic # temporary, remove after NODE-659-rdbms-epic merged to dev
 
 ---
@@ -732,7 +710,7 @@ steps:
   - "docker images | grep \"DRONE-${DRONE_BUILD_NUMBER}\" | awk '{print $3}' | xargs --no-run-if-empty docker rmi -f || true"
   environment:
     _JAVA_OPTIONS: "-Xms2G -Xmx2G -XX:MaxMetaspaceSize=1G"
-  image: "casperlabs/buildenv:latest"
+  image: "arcolife/buildenv:bintray_u"
   volumes:
   - name: docker_sock
     path: "/var/run/docker.sock"
@@ -752,7 +730,7 @@ trigger:
   - "release-*"
   - "testing*"
   - trying
-  - staging
+  - test_bintray
 
 depends_on:
 - build-bors-merge
@@ -787,7 +765,7 @@ trigger:
   - "release-*"
   - "testing*"
   - trying
-  - staging
+  - test_bintray
 
 depends_on:
 - build-bors-merge
@@ -809,7 +787,7 @@ steps:
   - "cp node/target/rpm/RPMS/noarch/casperlabs-node-*.noarch.rpm artifacts/${DRONE_BRANCH}"
   environment:
     _JAVA_OPTIONS: "-Xms2G -Xmx2G -XX:MaxMetaspaceSize=1G"
-  image: "casperlabs/buildenv:latest"
+  image: "arcolife/buildenv:bintray_u"
   volumes:
   - name: docker_sock
     path: "/var/run/docker.sock"
@@ -826,7 +804,7 @@ steps:
   - "cp execution-engine/target/debian/casperlabs-engine-grpc-server_*.deb artifacts/${DRONE_BRANCH}"
   - "cp execution-engine/target/release/rpmbuild/RPMS/x86_64/casperlabs-engine-grpc-server-*.rpm artifacts/${DRONE_BRANCH}"
   - "WORKING_DIR=$(pwd) ; cd execution-engine/target/release/rpmbuild/SOURCES ; OS=$(uname -s | tr '[:upper:]' '[:lower:]') ; ARCH=$(uname -p) ; SOURCE=$(ls casperlabs-engine-grpc-server-*.tar.gz | sed \"s/.tar.gz//\") ; TARGET=$(ls $SOURCE*.tar.gz | sed \"s/.tar.gz/_\"$OS\"_\"$ARCH\".tar.gz/\") ; tar -xzf $SOURCE.tar.gz ; tar -czf $TARGET -C $SOURCE/usr/bin/ . && cp $TARGET $WORKING_DIR/artifacts/${DRONE_BRANCH}"
-  image: "casperlabs/buildenv:latest"
+  image: "arcolife/buildenv:bintray_u"
   volumes:
   - name: docker_sock
     path: "/var/run/docker.sock"
@@ -836,56 +814,86 @@ steps:
   depends_on:
   - package-sbt-artifacts-tag
 
-- name: mac-ee-tarball-tag
-  image: appleboy/drone-ssh:1.5.5
-  environment:
-    SSH_HOST:
-      from_secret: mac-host
-    SSH_USERNAME:
-      from_secret: mac-user
-    SSH_KEY:
-      from_secret: mac-ssh-key
-    CARGO_FLAGS: "--release"
-  settings:
-    command_timeout: 60m
-    port:
-      from_secret: mac-port
-    script:
-    - mkdir -p DRONE_BUILD_${DRONE_BUILD_NUMBER}
-    - cd DRONE_BUILD_${DRONE_BUILD_NUMBER}
-    - git clone -b master https://github.com/CasperLabs/CasperLabs.git
-    - export PATH=$PATH:/usr/local/bin/
-    - cd CasperLabs/execution-engine
-    - make setup
-    - CARGO_FLAGS=--release make build
-    - cd target/release/
-    - export OS=$(uname -s | tr '[:upper:]' '[:lower:]')
-    - export ARCH=$(uname -p)
-    - export VERSION=$(./casperlabs-engine-grpc-server --version | awk '{print $NF}')
-    - tar -czvf casperlabs-engine-grpc-server-"$VERSION"_"$OS"_"$ARCH".tar.gz casperlabs-engine-grpc-server
-  when:
-    ref:
-    - refs/tags/v*
+# - name: mac-ee-tarball-tag
+#   image: appleboy/drone-ssh:1.5.5
+#   environment:
+#     SSH_HOST:
+#       from_secret: mac-host
+#     SSH_USERNAME:
+#       from_secret: mac-user
+#     SSH_KEY:
+#       from_secret: mac-ssh-key
+#     CARGO_FLAGS: "--release"
+#   settings:
+#     command_timeout: 60m
+#     port:
+#       from_secret: mac-port
+#     script:
+#     - mkdir -p DRONE_BUILD_${DRONE_BUILD_NUMBER}
+#     - cd DRONE_BUILD_${DRONE_BUILD_NUMBER}
+#     - git clone -b master https://github.com/CasperLabs/CasperLabs.git
+#     - export PATH=$PATH:/usr/local/bin/
+#     - cd CasperLabs/execution-engine
+#     - make setup
+#     - CARGO_FLAGS=--release make build
+#     - cd target/release/
+#     - export OS=$(uname -s | tr '[:upper:]' '[:lower:]')
+#     - export ARCH=$(uname -p)
+#     - export VERSION=$(./casperlabs-engine-grpc-server --version | awk '{print $NF}')
+#     - tar -czvf casperlabs-engine-grpc-server-"$VERSION"_"$OS"_"$ARCH".tar.gz casperlabs-engine-grpc-server
+#   when:
+#     ref:
+#     - refs/tags/v*
 
-- name: rsync-mac-tarball-tag
-  image: "casperlabs/buildenv:latest"
-  environment:
-    SSH_HOST:
-      from_secret: mac-host
-    SSH_USERNAME:
-      from_secret: mac-user
-    SSH_KEY:
-      from_secret: mac-ssh-key
+# - name: rsync-mac-tarball-tag
+#   image: "arcolife/buildenv:bintray_u"
+#   environment:
+#     SSH_HOST:
+#       from_secret: mac-host
+#     SSH_USERNAME:
+#       from_secret: mac-user
+#     SSH_KEY:
+#       from_secret: mac-ssh-key
+#   commands:
+#   - mkdir -p ~/.ssh
+#   - mkdir -p artifacts/
+#   - umask 077 && echo "$SSH_KEY" > ~/.ssh/id_ed25519
+#   - rsync -avzhe "ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null" $SSH_USERNAME@$SSH_HOST:DRONE_BUILD_${DRONE_BUILD_NUMBER}/CasperLabs/execution-engine/target/release/casperlabs-engine-grpc-server-*darwin*.tar.gz artifacts/${DRONE_BRANCH}/
+#   when:
+#     ref:
+#     - refs/tags/v*
+#   depends_on:
+#     - mac-ee-tarball-tag
+
+- name: generate-metapackages
   commands:
-  - mkdir -p ~/.ssh
-  - mkdir -p artifacts/
-  - umask 077 && echo "$SSH_KEY" > ~/.ssh/id_ed25519
-  - rsync -avzhe "ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null" $SSH_USERNAME@$SSH_HOST:DRONE_BUILD_${DRONE_BUILD_NUMBER}/CasperLabs/execution-engine/target/release/casperlabs-engine-grpc-server-*darwin*.tar.gz artifacts/${DRONE_BRANCH}/
+  - "mkdir -p artifacts/${DRONE_BRANCH}"
+  - "WORKING_DIR=$(pwd)/artifacts/${DRONE_BRANCH}/"
+  - "cd $WORKING_DIR"
+  - "THIS_VERSION=$(ls casperlabs-engine-grpc-server_*_amd64.deb | sed 's/casperlabs-engine-grpc-server_//' | sed 's/_amd64.deb//')"
+  - "THIS_VERSION_MAJOR=$(echo $THIS_VERSION | cut -d '.' -f 1)"
+  - "THIS_VERSION_MINOR=$(echo $THIS_VERSION | cut -d '.' -f 2,3)"
+  - "cd /opt/bintray/artifacts"
+  - "echo $THIS_VERSION"
+  - "echo $THIS_VERSION_MINOR"
+  - "echo $THIS_VERSION_MAJOR"
+  - "sed -i 's/THIS_VERSION_MAJOR/'$THIS_VERSION_MAJOR'/g' rpmbuild/SPECS/casperlabs-all.spec"
+  - "sed -i 's/THIS_VERSION_MINOR/'$THIS_VERSION_MINOR'/g' rpmbuild/SPECS/casperlabs-all.spec"
+  - "sed -i 's/THIS_VERSION/'$THIS_VERSION'/g' rpmbuild/SPECS/casperlabs-all.spec"
+  - "rpmbuild -bb rpmbuild/SPECS/casperlabs-all.spec -D '_topdir '$(pwd)'/rpmbuild' -D 'SRC '$(pwd)"
+  - "sed -i 's/THIS_VERSION/'$THIS_VERSION'/g' /opt/bintray/artifacts/deb_build/casperlabs-all.cfg"
+  - "equivs-build  deb_build/casperlabs-all.cfg"
+  - "cp /opt/bintray/artifacts/casperlabs_*_all.deb $WORKING_DIR/"
+  - "cp /opt/bintray/artifacts/rpmbuild/RPMS/x86_64/casperlabs-*.rpm $WORKING_DIR/"
+  image: "arcolife/buildenv:bintray_u"
+  volumes:
+  - name: docker_sock
+    path: "/var/run/docker.sock"
   when:
     ref:
     - refs/tags/v*
   depends_on:
-    - mac-ee-tarball-tag
+  - package-ee-tag
 
 - name: github_publish_release_artifacts
   settings:
@@ -903,33 +911,57 @@ steps:
     ref:
     - refs/tags/v*
   depends_on:
-  - package-sbt-artifacts-tag
-  - package-ee-tag
-  - rsync-mac-tarball-tag
+  # - rsync-mac-tarball-tag
+  - generate-metapackages
 
-- name: cleanup-mac-tag
-  image: appleboy/drone-ssh:1.5.5
+- name: bintray_publish_artifacts
+  image: "arcolife/buildenv:bintray_t"
+  commands:
+    - "mkdir -p artifacts/${DRONE_BRANCH}"
+    - "WORKING_DIR=$(pwd)/artifacts/${DRONE_BRANCH}"
+    - "cd $WORKING_DIR"
+    - "THIS_VERSION=$(ls casperlabs-engine-grpc-server_*_amd64.deb | sed s/casperlabs-engine-grpc-server_// | sed s/_amd64.deb//)"
+    - "sed -i 's#/opt/bintray/artifacts#'$WORKING_DIR'#g' /opt/bintray/package_config.yaml"
+    - "sed -i 's/THIS_VERSION/'$THIS_VERSION'/g' /opt/bintray/package_config.yaml"
+    - "cat /opt/bintray/package_config.yaml"
+    - "cd /opt/bintray && ./bintray"
   environment:
-    SSH_HOST:
-      from_secret: mac-host
-    SSH_USERNAME:
-      from_secret: mac-user
-    SSH_KEY:
-      from_secret: mac-ssh-key
-  settings:
-    port:
-      from_secret: mac-port
-    script:
-    - rm -rf DRONE_BUILD_${DRONE_BUILD_NUMBER}
+    PLUGIN_BINTRAY_USERNAME:
+      from_secret: bintray_username
+    PLUGIN_BINTRAY_API_KEY:
+      from_secret: bintray_api_key
+    PLUGIN_BINTRAY_GPG_PASSPHRASE:
+      from_secret: bintray_gpg_passphrase
+    PLUGIN_BINTRAY_CFG: /opt/bintray/package_config.yaml
   when:
     ref:
     - refs/tags/v*
-    status:
-    - failure
-    - success
   depends_on:
-  - mac-ee-tarball-tag
-  - rsync-mac-tarball-tag
+  - github_publish_release_artifacts
+
+# - name: cleanup-mac-tag
+#   image: appleboy/drone-ssh:1.5.5
+#   environment:
+#     SSH_HOST:
+#       from_secret: mac-host
+#     SSH_USERNAME:
+#       from_secret: mac-user
+#     SSH_KEY:
+#       from_secret: mac-ssh-key
+#   settings:
+#     port:
+#       from_secret: mac-port
+#     script:
+#     - rm -rf DRONE_BUILD_${DRONE_BUILD_NUMBER}
+#   when:
+#     ref:
+#     - refs/tags/v*
+#     status:
+#     - failure
+#     - success
+#   depends_on:
+#   - mac-ee-tarball-tag
+#   - rsync-mac-tarball-tag
 
 volumes:
 - name: docker_sock
@@ -940,121 +972,121 @@ trigger:
   ref:
   - refs/tags/v*
 
----
-kind: pipeline
-name: mac-nightly-cron
-
-clone:
-  disable: true
-
-steps:
-- name: mac-clone
-  image: appleboy/drone-ssh:1.5.5
-  environment:
-    SSH_HOST:
-      from_secret: mac-host
-    SSH_USERNAME:
-      from_secret: mac-user
-    SSH_KEY:
-      from_secret: mac-ssh-key
-  settings:
-    command_timeout: 60m
-    port:
-      from_secret: mac-port
-    script:
-    - mkdir -p DRONE_BUILD_${DRONE_BUILD_NUMBER}
-    - cd DRONE_BUILD_${DRONE_BUILD_NUMBER}
-    - git clone -b dev https://github.com/CasperLabs/CasperLabs.git
-
-- name: build-node
-  image: appleboy/drone-ssh:1.5.5
-  environment:
-    SSH_HOST:
-      from_secret: mac-host
-    SSH_USERNAME:
-      from_secret: mac-user
-    SSH_KEY:
-      from_secret: mac-ssh-key
-  settings:
-    command_timeout: 60m
-    port:
-      from_secret: mac-port
-    script:
-    - cd DRONE_BUILD_${DRONE_BUILD_NUMBER}/CasperLabs
-    - /usr/local/bin/sbt node/universal:stage
-
-- name: build-client
-  image: appleboy/drone-ssh:1.5.5
-  environment:
-    SSH_HOST:
-      from_secret: mac-host
-    SSH_USERNAME:
-      from_secret: mac-user
-    SSH_KEY:
-      from_secret: mac-ssh-key
-  settings:
-    command_timeout: 60m
-    port:
-      from_secret: mac-port
-    script:
-    - cd DRONE_BUILD_${DRONE_BUILD_NUMBER}/CasperLabs
-    - /usr/local/bin/sbt client/universal:stage
-
-- name: build-ee
-  image: appleboy/drone-ssh:1.5.5
-  environment:
-    SSH_HOST:
-      from_secret: mac-host
-    SSH_USERNAME:
-      from_secret: mac-user
-    SSH_KEY:
-      from_secret: mac-ssh-key
-  settings:
-    command_timeout: 60m
-    port:
-      from_secret: mac-port
-    script:
-    - export PATH=$PATH:/usr/local/bin/
-    - cd DRONE_BUILD_${DRONE_BUILD_NUMBER}/CasperLabs
-    - cd execution-engine
-    - make setup
-    - make build
-
-- name: cleanup-mac
-  image: appleboy/drone-ssh:1.5.5
-  environment:
-    SSH_HOST:
-      from_secret: mac-host
-    SSH_USERNAME:
-      from_secret: mac-user
-    SSH_KEY:
-      from_secret: mac-ssh-key
-  settings:
-    port:
-      from_secret: mac-port
-    script:
-    - rm -rf DRONE_BUILD_${DRONE_BUILD_NUMBER}
-  when:
-    status:
-    - failure
-    - success
-
-- name: notify-mac-cron
-  image: plugins/slack
-  settings:
-    webhook:
-      from_secret: slack_webhook
-    channel: alerts
-    template:
-    - |
-      macOS Build Status: *{{ uppercasefirst build.status }}*
-      Drone Build: <{{ build.link }}|#{{ build.number }}>
-  when:
-    status:
-    - failure
-
-trigger:
-  cron: [ mac-hourly-cron ]
+# ---
+# kind: pipeline
+# name: mac-nightly-cron
+#
+# clone:
+#   disable: true
+#
+# steps:
+# - name: mac-clone
+#   image: appleboy/drone-ssh:1.5.5
+#   environment:
+#     SSH_HOST:
+#       from_secret: mac-host
+#     SSH_USERNAME:
+#       from_secret: mac-user
+#     SSH_KEY:
+#       from_secret: mac-ssh-key
+#   settings:
+#     command_timeout: 60m
+#     port:
+#       from_secret: mac-port
+#     script:
+#     - mkdir -p DRONE_BUILD_${DRONE_BUILD_NUMBER}
+#     - cd DRONE_BUILD_${DRONE_BUILD_NUMBER}
+#     - git clone -b dev https://github.com/CasperLabs/CasperLabs.git
+#
+# - name: build-node
+#   image: appleboy/drone-ssh:1.5.5
+#   environment:
+#     SSH_HOST:
+#       from_secret: mac-host
+#     SSH_USERNAME:
+#       from_secret: mac-user
+#     SSH_KEY:
+#       from_secret: mac-ssh-key
+#   settings:
+#     command_timeout: 60m
+#     port:
+#       from_secret: mac-port
+#     script:
+#     - cd DRONE_BUILD_${DRONE_BUILD_NUMBER}/CasperLabs
+#     - /usr/local/bin/sbt node/universal:stage
+#
+# - name: build-client
+#   image: appleboy/drone-ssh:1.5.5
+#   environment:
+#     SSH_HOST:
+#       from_secret: mac-host
+#     SSH_USERNAME:
+#       from_secret: mac-user
+#     SSH_KEY:
+#       from_secret: mac-ssh-key
+#   settings:
+#     command_timeout: 60m
+#     port:
+#       from_secret: mac-port
+#     script:
+#     - cd DRONE_BUILD_${DRONE_BUILD_NUMBER}/CasperLabs
+#     - /usr/local/bin/sbt client/universal:stage
+#
+# - name: build-ee
+#   image: appleboy/drone-ssh:1.5.5
+#   environment:
+#     SSH_HOST:
+#       from_secret: mac-host
+#     SSH_USERNAME:
+#       from_secret: mac-user
+#     SSH_KEY:
+#       from_secret: mac-ssh-key
+#   settings:
+#     command_timeout: 60m
+#     port:
+#       from_secret: mac-port
+#     script:
+#     - export PATH=$PATH:/usr/local/bin/
+#     - cd DRONE_BUILD_${DRONE_BUILD_NUMBER}/CasperLabs
+#     - cd execution-engine
+#     - make setup
+#     - make build
+#
+# - name: cleanup-mac
+#   image: appleboy/drone-ssh:1.5.5
+#   environment:
+#     SSH_HOST:
+#       from_secret: mac-host
+#     SSH_USERNAME:
+#       from_secret: mac-user
+#     SSH_KEY:
+#       from_secret: mac-ssh-key
+#   settings:
+#     port:
+#       from_secret: mac-port
+#     script:
+#     - rm -rf DRONE_BUILD_${DRONE_BUILD_NUMBER}
+#   when:
+#     status:
+#     - failure
+#     - success
+#
+# - name: notify-mac-cron
+#   image: plugins/slack
+#   settings:
+#     webhook:
+#       from_secret: slack_webhook
+#     channel: alerts
+#     template:
+#     - |
+#       macOS Build Status: *{{ uppercasefirst build.status }}*
+#       Drone Build: <{{ build.link }}|#{{ build.number }}>
+#   when:
+#     status:
+#     - failure
+#
+# trigger:
+#   cron: [ mac-hourly-cron ]
 
 # Signature for Drone
 ---
