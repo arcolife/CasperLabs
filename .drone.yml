@@ -191,7 +191,7 @@ steps:
   failure: "ignore"
   when:
     branch:
-    - test_bintray
+    - staging
     - trying
     changeset:
       includes:
@@ -206,7 +206,7 @@ steps:
   image: "casperlabs/buildenv:latest"
   when:
     branch:
-    - test_bintray
+    - staging
     - trying
     changeset:
       includes:
@@ -226,7 +226,7 @@ steps:
     path: "/var/run/docker.sock"
   when:
     branch:
-    - test_bintray
+    - staging
     - trying
 
 - name: git-status-post-scala-compile-bors
@@ -236,7 +236,7 @@ steps:
   image: "casperlabs/buildenv:latest"
   when:
     branch:
-    - test_bintray
+    - staging
     - trying
     changeset:
       includes:
@@ -257,7 +257,7 @@ steps:
   image: "casperlabs/buildenv:latest"
   when:
     branch:
-    - test_bintray
+    - staging
     - trying
   depends_on:
   - sbt-test-docker-bors
@@ -272,7 +272,7 @@ steps:
   image: "casperlabs/buildenv:latest"
   when:
     branch:
-    - test_bintray
+    - staging
     - trying
     changeset:
       includes:
@@ -295,7 +295,7 @@ steps:
   image: "casperlabs/buildenv:latest"
   when:
     branch:
-    - test_bintray
+    - staging
     - trying
     changeset:
       includes:
@@ -318,7 +318,7 @@ steps:
   image: "casperlabs/buildenv:latest"
   when:
     branch:
-    - test_bintray
+    - staging
     - trying
     changeset:
       includes:
@@ -347,7 +347,7 @@ steps:
     path: "/var/run/docker.sock"
   when:
     branch:
-    - test_bintray
+    - staging
     - trying
   depends_on:
   - rust-compile-test-bors
@@ -365,7 +365,7 @@ steps:
     path: "/var/run/docker.sock"
   when:
     branch:
-    - test_bintray
+    - staging
     - trying
     changeset:
       includes:
@@ -390,7 +390,7 @@ steps:
     path: "/var/run/docker.sock"
   when:
     branch:
-    - test_bintray
+    - staging
     - trying
   depends_on:
   - rust-compile-test-bors
@@ -409,7 +409,7 @@ steps:
     path: "/tmp"
   when:
     branch:
-    - test_bintray
+    - staging
     - trying
     changeset:
       includes:
@@ -434,7 +434,7 @@ steps:
     path: "/tmp"
   when:
     branch:
-    - test_bintray
+    - staging
     - trying
   depends_on:
   - docker-build-ee-int-bors
@@ -693,7 +693,7 @@ trigger:
   - "release-*"
   - "testing*"
   - trying
-  - test_bintray
+  - staging
   - NODE-659-rdbms-epic # temporary, remove after NODE-659-rdbms-epic merged to dev
 
 ---
@@ -730,7 +730,7 @@ trigger:
   - "release-*"
   - "testing*"
   - trying
-  - test_bintray
+  - staging
 
 depends_on:
 - build-bors-merge
@@ -765,7 +765,7 @@ trigger:
   - "release-*"
   - "testing*"
   - trying
-  - test_bintray
+  - staging
 
 depends_on:
 - build-bors-merge
@@ -915,14 +915,14 @@ steps:
   - generate-metapackages
 
 - name: bintray_publish_artifacts
-  image: "arcolife/buildenv:bintray_t"
+  image: "casperlabs/buildenv:latest"
   commands:
     - "mkdir -p artifacts/${DRONE_BRANCH}"
     - "WORKING_DIR=$(pwd)/artifacts/${DRONE_BRANCH}"
     - "cd $WORKING_DIR"
     - "THIS_VERSION=$(ls casperlabs-engine-grpc-server_*_amd64.deb | sed s/casperlabs-engine-grpc-server_// | sed s/_amd64.deb//)"
     - "sed -i 's#/opt/bintray/artifacts#'$WORKING_DIR'#g' /opt/bintray/package_config.yaml"
-    - "sed -i 's/THIS_VERSION/'$THIS_VERSION'/g' /opt/bintray/package_config.yaml"
+    - "sed -i 's/THIS_VERSION/v'$THIS_VERSION'/g' /opt/bintray/package_config.yaml"
     - "cat /opt/bintray/package_config.yaml"
     - "cd /opt/bintray && ./bintray"
   environment:
